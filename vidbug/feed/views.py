@@ -112,5 +112,40 @@ def get_detailed_question(request, id):
     }
     return JsonResponse({'question':data})
 
+@api_view(['POST','GET'])
+@login_required
+def get_user(request):
+    print(request.user)
+    data = request.data
+    print(data)
+    question = Question.objects.get(room_id=data['room_id'])
+    if request.user != question.user:
+        question.expert = request.user
+    question.save()
+    return JsonResponse({'status':'success'})
+
+@api_view(['POST','GET'])
+def give_rating(request):
+    print(request.data)
+    data = request.data
+    question = Question.objects.get(room_id=data['roomId'])
+    expert = question.expert
+    expert.rating_count += 1
+    expert.rating = (expert.rating + float(data['rating']) ) / expert.rating_count
+    expert.save()
+    return JsonResponse({'status':'success'})
+
+@api_view(['POST','GET'])
+@login_required
+def is_author(request):
+    print(request.user)
+    data = request.data
+    print(data)
+    question = Question.objects.get(room_id=data['room_id'])
+    if request.user == question.user:
+        return JsonResponse({'is_author':True})
+    return JsonResponse({'is_author':False})
+        
+
 
 

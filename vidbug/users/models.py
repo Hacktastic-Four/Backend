@@ -34,6 +34,7 @@ class CustomUser(AbstractBaseUser):
     skills = models.TextField("skills", blank=True, null=True)
     profile_picture = models.ImageField(default='default.jpeg', upload_to='profile_pics',null=True, blank=True)
     verified = models.BooleanField(default=False)
+    rating_count = models.IntegerField('rating_count', default=0)
 
     USERNAME_FIELD = 'email'
 

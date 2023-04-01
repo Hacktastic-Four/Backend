@@ -3,7 +3,8 @@ from users.models import *
 
 # Create your models here.
 class Question(models.Model):
-    user = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser,related_name="questioner",on_delete=models.CASCADE)
+    expert = models.ForeignKey(CustomUser,related_name="answerer",on_delete=models.CASCADE, blank=True,null=True)
     question = models.TextField(blank=True, null=True)
     topic = models.TextField(blank=True, null=True)
     room_id = models.UUIDField(blank=True,null=True)

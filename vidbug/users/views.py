@@ -41,7 +41,7 @@ def register(request):
         html_message=msg_html,
     )
 
-    return Response(status=status.HTTP_200_OK)
+    return JsonResponse({'status':'success'})
 
 @api_view(['POST','GET'])
 def verify_email(request, uuid):
@@ -61,7 +61,7 @@ def login(request):
     password = data.get('password', None)
     user = CustomUser.objects.get(email=email)
     if not user.verified:
-        return JsonResponse({"Invalid" : "Please Verify your email"},status=status.HTTP_401_UNAUTHORIZED)
+        return JsonResponse({"Invalid" : "Please Verify your email",'status':'failure'})
     password_check = user.check_password(password)
     if password_check:
         data = Token.objects.get_or_create(user=user)
@@ -70,7 +70,7 @@ def login(request):
         csrf.get_token(request)
         return response
     else:
-        return JsonResponse({"Invalid" : "Invalid username or password!!"},status=status.HTTP_404_NOT_FOUND)
+        return JsonResponse({"Invalid" : "Invalid username or password!!",'status':'failure'})
     
 @api_view(['POST'])
 def forget_password(request):
