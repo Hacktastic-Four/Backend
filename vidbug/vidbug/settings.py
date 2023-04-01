@@ -41,9 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users',
     'rest_framework',
-    'rest_framework_simplejwt',
     'rest_framework.authtoken',
-
+    'feed',
 ]
 
 MIDDLEWARE = [
@@ -142,22 +141,9 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 
-# REST_FRAMEWORK = {
-#     'DEFAULT_AUTHENTICATION_CLASSES': (
-#         'users.authenticate.CustomAuthentication',
-#     ),
-# }
+
 REST_FRAMEWORK = {    
 'DEFAULT_AUTHENTICATION_CLASSES': [        
     'rest_framework.authentication.TokenAuthentication',    
 ],
 }
-# SIMPLE_JWT = {
-# "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
-# 'AUTH_COOKIE': 'access_token', 
-# 'AUTH_COOKIE_DOMAIN': None,     
-# 'AUTH_COOKIE_SECURE': False,   
-# 'AUTH_COOKIE_HTTP_ONLY' : True, 
-# 'AUTH_COOKIE_PATH': '/',        
-# 'AUTH_COOKIE_SAMESITE': 'Lax',                             
-# }
