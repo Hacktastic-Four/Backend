@@ -110,4 +110,28 @@ def set_forget_password(request):
     user.password = password
     pass_object.delete()
     user.save()
-    return JsonResponse({'success':True})    
+    return JsonResponse({'success':True})  
+
+@api_view(['POST','GET'])
+@login_required
+def profile(request):
+    user = request.user
+    if request.method == "GET":
+        first_name = user.first_name
+        last_name = user.last_name
+        rating = user.rating
+        profile = user.profile
+        skills = user.skills
+        profile_picture = user.profile_picture
+        return JsonResponse({'first_name':first_name,'last_name':last_name,'rating':rating,'profile':profile,'skills':skills,'profile_picture':profile_picture.url})
+    if request.method == 'POST':
+        data = request.data
+        for field, value in data.items():
+            setattr(user,field,value)
+        user.save()
+        return JsonResponse({'status':'success'})
+        
+        
+    return JsonResponse({'status':'error'}) 
+
+  
