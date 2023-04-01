@@ -32,3 +32,68 @@ def get_room_id(request):
         return JsonResponse({'room_id':question.room_id})
     except:
         return JsonResponse({'error': "Invalid question id"})
+
+@api_view(['POST','GET'])
+@login_required
+def add_answer(request):
+    user = request.user
+    data = request.data
+    question = Question.objects.get(id=data['id'])
+    answer = Answer()
+    answer.question = question
+    answer.user = user
+    answer.answer = data['answer']
+    answer.save()
+    return JsonResponse({"success":True})
+
+@api_view(['POST','GET'])
+@login_required
+def upvote_answer(request):
+    data = request.data
+    answer = Answer.objects.get(id=data['id'])
+    answer.upvote.add(request.user)
+    upvote_count = answer.upvote_count()
+    return JsonResponse({'success':True,'upvote_count':upvote_count})
+
+@api_view(['POST','GET'])
+@login_required
+def downvote_answer(request):
+    data = request.data
+    answer = Answer.objects.get(id=data['id'])
+    answer.downvote.add(request.user)
+    downvote_count = answer.downvote_count()
+    return JsonResponse({'success':True,'downvote_count':downvote_count})
+
+@api_view(['POST','GET'])
+def get_all_questions(request):
+    questions = Question.objects.filter(open=True).order_by('-id')
+    data = []
+    for question in questions:
+        temp = {
+            'question': question.question,
+            'user': question.user.email,
+            'topic': question.topic,
+            'description': question.description
+        }
+        data.append(temp)
+    return JsonResponse({'questions':data})
+
+@api_view(['POST','GET'])
+@login_required
+def get_skills_questions(request):
+    user = request.user
+    skills = user.skills.split()
+    questions = Question.objects.filter(open=True, topic__in=skills).order_by('-id')
+    data = []
+    for question in questions:
+        temp = {
+            'question': question.question,
+            'user': question.user.email,
+            'topic': question.topic,
+            'description': question.description
+        }
+        data.append(temp)
+    return JsonResponse({'questions':data})
+
+
+
