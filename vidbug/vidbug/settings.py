@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'users',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -54,7 +58,7 @@ ROOT_URLCONF = 'vidbug.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -68,6 +72,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'vidbug.wsgi.application'
+AUTH_USER_MODEL = 'users.CustomUser'
 
 
 # Database
@@ -115,9 +120,37 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = os.environ.get('dj_email')
+EMAIL_HOST_PASSWORD = os.environ.get('dj_pass')
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'users.authenticate.CustomAuthentication',
+    ),
+}
+
+SIMPLE_JWT = {
+"ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+'AUTH_COOKIE': 'access_token', 
+'AUTH_COOKIE_DOMAIN': None,     
+'AUTH_COOKIE_SECURE': False,   
+'AUTH_COOKIE_HTTP_ONLY' : True, 
+'AUTH_COOKIE_PATH': '/',        
+'AUTH_COOKIE_SAMESITE': 'Lax',                             
+}
