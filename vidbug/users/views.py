@@ -1,17 +1,17 @@
 from .models import *
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 import rest_framework.status as status
 from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 import uuid
-from rest_framework_simplejwt.tokens import RefreshToken
 from django.middleware import csrf
-from django.conf import settings
 from django.http import HttpResponseRedirect
+from rest_framework.authtoken.models import Token
+from django.http import JsonResponse
+from .authenticate import login_required
 
-# Create your views here.
 
 @api_view(['POST','GET'])
 def register(request):
@@ -48,17 +48,10 @@ def verify_email(request, uuid):
     email_object = EmailsHandler.objects.get(email_verf=uuid)
     user_object = CustomUser.objects.get(email=email_object.user)
     user_object.verified = True
+    email_object.delete()
     user_object.save()
     return HttpResponseRedirect("http://127.0.0.1:3000/login/")
 
-
-def get_tokens_for_user(user):
-    refresh = RefreshToken.for_user(user)
-        
-    return {
-        'refresh': str(refresh),
-        'access': str(refresh.access_token),
-    }
 
 @api_view(['POST'])
 def login(request):
@@ -69,17 +62,50 @@ def login(request):
     user = CustomUser.objects.get(email=email)
     password_check = user.check_password(password)
     if password_check:
-        data = get_tokens_for_user(user)
-        response.set_cookie(
-                            key = settings.SIMPLE_JWT['AUTH_COOKIE'], 
-                            value = data["access"],
-                            expires = settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
-                            secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
-                            httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
-                            samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
-                                )
+        data = Token.objects.get_or_create(user=user)
+        response = JsonResponse({"Success" : "Login successfully"}) 
+        response.set_cookie('token',data[0])
         csrf.get_token(request)
-        response.data = {"Success" : "Login successfully","data":data}
         return response
     else:
-        return Response({"Invalid" : "Invalid username or password!!"},status=status.HTTP_404_NOT_FOUND)
+        return JsonResponse({"Invalid" : "Invalid username or password!!"},status=status.HTTP_404_NOT_FOUND)
+    
+@api_view(['POST'])
+def forget_password(request):
+    email = request.data['email']
+    user = CustomUser.objects.get(email=email)
+    UID =  uuid.uuid4()
+    email_object = EmailsHandler(user=user,pass_verf=UID)
+    email_object.save() 
+    msg_plain = render_to_string('users/email.txt')
+    msg_html = render_to_string('users/email.html', context={'verify_link':f'http://127.0.0.1:8000/users/password-reset/{UID}'})
+
+    send_mail(
+        'Password Reset Email',
+        msg_plain,
+        'VidBug',
+        [email],
+        html_message=msg_html,
+    )
+    return JsonResponse({'message':"Email Sent","success":True})
+
+@api_view(['POST'])
+@login_required
+def reset_password(request):
+    data = request.data
+    user = request.user
+    password = make_password(salt=user.email,password=data['password'])
+    user.password = password
+    user.save()
+    return JsonResponse({'success':True})
+
+@api_view(['POST','GET'])
+def set_forget_password(request):
+    data = request.data
+    pass_object = EmailsHandler.objects.get(pass_verf=data['uuid'])
+    user = CustomUser.objects.get(email=pass_object.user)
+    password = make_password(salt=user.email,password=data['password'])
+    user.password = password
+    pass_object.delete()
+    user.save()
+    return JsonResponse({'success':True})    

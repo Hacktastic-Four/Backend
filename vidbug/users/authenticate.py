@@ -1,33 +1,23 @@
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from django.conf import settings
+from rest_framework.response import Response
+from rest_framework import status
 
-from rest_framework.authentication import CSRFCheck
-from rest_framework import exceptions
+from rest_framework.authtoken.models import Token
+import functools
 
-def enforce_csrf(request):
-    """
-    Enforce CSRF validation.
-    """
-    check = CSRFCheck()
-    # populates request.META['CSRF_COOKIE'], which is used in process_view()
-    check.process_request(request)
-    reason = check.process_view(request, None, (), {})
-    if reason:
-        # CSRF failed, bail with explicit error message
-        raise exceptions.PermissionDenied('CSRF Failed: %s' % reason)
+def login_required(view_func):
 
-class CustomAuthentication(JWTAuthentication):
-    
-    def authenticate(self, request):
-        header = self.get_header(request)
-        
-        if header is None:
-            raw_token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE']) or None
+    @functools.wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        token = request.COOKIES.get('token')
+        if token:
+            user = Token.objects.get(key=token).user
+            if user:
+                request.user = user
+                return view_func(request,*args, **kwargs)
+            else:
+                return Response({'error': 'Invalid Token'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
-            raw_token = self.get_raw_token(header)
-        if raw_token is None:
-            return None
+            return Response({'error': 'Login Required'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        validated_token = self.get_validated_token(raw_token)
-        enforce_csrf(request)
-        return self.get_user(validated_token), validated_token
+    return wrapper
+
