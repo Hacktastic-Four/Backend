@@ -65,7 +65,7 @@ def login(request):
     password_check = user.check_password(password)
     if password_check:
         data = Token.objects.get_or_create(user=user)
-        response = JsonResponse({"Success" : "Login successfully"}) 
+        response = JsonResponse({"status" : "success","token":str(data[0])}) 
         response.set_cookie('token',data[0])
         csrf.get_token(request)
         return response

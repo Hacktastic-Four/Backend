@@ -8,7 +8,8 @@ def login_required(view_func):
 
     @functools.wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        token = request.COOKIES.get('token')
+        token = request.META['HTTP_AUTHORIZATION'].split()[1]
+        print(token)
         if token:
             user = Token.objects.get(key=token).user
             if user:
