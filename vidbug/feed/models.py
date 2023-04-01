@@ -9,6 +9,7 @@ class Question(models.Model):
     room_id = models.UUIDField(blank=True,null=True)
     open = models.BooleanField(default=True)
     description = models.TextField(blank=True,null=True)
+    timestamp = models.DateTimeField(auto_now_add=True, blank=True,null=True)
 
     def __str__(self) -> str:
         return f"{self.user.email} - {self.id}"

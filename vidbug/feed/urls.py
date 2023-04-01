@@ -7,5 +7,6 @@ urlpatterns = [
     path("downvote-answer/",downvote_answer,name="downvote_answer"),
     path("get-all-questions/",get_all_questions,name="get_all_questions"),
     path("get-skills-questions/",get_skills_questions,name="get_skills_questions"),
+    path("get-detailed-question/<int:id>/",get_detailed_question,name="get_detailed_question"),
     path("get-room-id/",get_room_id,name="get_room_id"),
 ]

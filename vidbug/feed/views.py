@@ -15,12 +15,14 @@ def add_question(request):
     data = request.data
     question = data['question']
     topic = data['topic']
+    description = data['description']
     UID =  uuid.uuid4()
     question_object = Question()
     question_object.user = request.user
     question_object.question = question
     question_object.topic = topic
     question_object.room_id = UID
+    question_object.description = description
     question_object.save()
     return JsonResponse({"success":True})
 
@@ -73,7 +75,8 @@ def get_all_questions(request):
             'question': question.question,
             'user': question.user.email,
             'topic': question.topic,
-            'description': question.description
+            'description': question.description,
+            'timestamp': question.timestamp
         }
         data.append(temp)
     return JsonResponse({'questions':data})
@@ -90,10 +93,24 @@ def get_skills_questions(request):
             'question': question.question,
             'user': question.user.email,
             'topic': question.topic,
-            'description': question.description
+            'description': question.description,
+            'timestamp': question.timestamp
         }
         data.append(temp)
     return JsonResponse({'questions':data})
+
+@api_view(['POST','GET'])
+def get_detailed_question(request, id):
+    question = Question.objects.get(id = id)
+    data = {
+        'question': question.question,
+        'user': question.user.email,
+        'topic': question.topic,
+        'description': question.description,
+        'timestamp': question.timestamp
+
+    }
+    return JsonResponse({'question':data})
 
 
 
