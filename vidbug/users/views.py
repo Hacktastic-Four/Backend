@@ -60,6 +60,8 @@ def login(request):
     email = data.get('email', None)
     password = data.get('password', None)
     user = CustomUser.objects.get(email=email)
+    if not user.verified:
+        return JsonResponse({"Invalid" : "Please Verify your email"},status=status.HTTP_401_UNAUTHORIZED)
     password_check = user.check_password(password)
     if password_check:
         data = Token.objects.get_or_create(user=user)
