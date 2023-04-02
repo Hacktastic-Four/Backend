@@ -1,0 +1,13 @@
+{
+    "manifest_version": 3,
+    "name": "VidBug Extension",
+    "version": "1.0",
+    "description": "This is my extension",
+    "action": {
+      "default_popup": "popup.html"
+    },
+    "host_permissions": [
+      "https://stackoverflow.com/*",
+      "http://localhost:8000/*"
+  ]
+  }

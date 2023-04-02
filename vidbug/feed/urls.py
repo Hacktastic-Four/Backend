@@ -13,4 +13,5 @@ urlpatterns = [
     path("give-rating/",give_rating,name="give_rating"),
     path("is-author/",is_author,name="is_author"),
     path("pop/",populate_db,name="populate_db"),
+    path("get-question/",get_question,name="get_question"),
 ]

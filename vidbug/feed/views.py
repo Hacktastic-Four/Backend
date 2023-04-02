@@ -127,7 +127,8 @@ def get_detailed_question(request, id):
         'topic': question.topic,
         'description': question.description,
         'timestamp': question.timestamp,
-        'answers': ans
+        'answers': ans,
+        'room_id': question.room_id
 
     }
     return JsonResponse({'question':data})
@@ -145,14 +146,20 @@ def get_user(request):
     return JsonResponse({'status':'success'})
 
 @api_view(['POST','GET'])
+@login_required
 def give_rating(request):
     print(request.data)
     data = request.data
     question = Question.objects.get(room_id=data['roomId'])
     expert = question.expert
-    expert.rating_count += 1
-    expert.rating = (expert.rating + float(data['rating']) ) / expert.rating_count
-    expert.save()
+    if request.user == expert:
+        question.user.rating_count += 1
+        question.user.rating = (question.user.rating + float(data['rating']) ) / question.user.rating_count
+        question.user.save()
+    else:
+        expert.rating_count += 1
+        expert.rating = (expert.rating + float(data['rating']) ) / expert.rating_count
+        expert.save()
     return JsonResponse({'status':'success'})
 
 @api_view(['POST','GET'])
@@ -169,7 +176,7 @@ def is_author(request):
 @api_view(['POST','GET'])
 def populate_db(request):
     df = pd.read_csv('D:/Work/Projects/Backend/vidbug/feed/final_data.csv')
-    df = df[189:195]
+    df = df[123:145]
     for idx, row in df.iterrows():
         question = Question()
         question.user = CustomUser.objects.get(email='harshit.nj+1@somaiya.edu')
@@ -178,6 +185,7 @@ def populate_db(request):
         question.description = row['Full-Question']
         uid = uuid.uuid4()
         question.room_id = uid
+        question.url = row['Links']
         question.save()
         answer = Answer()
         answer.question = question
@@ -186,4 +194,14 @@ def populate_db(request):
         answer.is_official = True
         answer.save()
     return JsonResponse({'status':'success'})
+
+@api_view(['POST','GET'])
+def get_question(request):
+    data = request.data
+    try:
+        question_exists = Question.objects.get(url=data['url'])
+        return JsonResponse({'video_link':"linkk",'status':'exists'})
+    except:
+        uid = uuid.uuid4()
+        return JsonResponse({'meet_link':f'http://localhost:3000/room/{uid}/','status':'not_exists'})
 

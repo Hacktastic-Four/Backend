@@ -11,6 +11,7 @@ class Question(models.Model):
     open = models.BooleanField(default=True)
     description = models.TextField(blank=True,null=True)
     timestamp = models.DateTimeField(auto_now_add=True, blank=True,null=True)
+    url = models.URLField(blank=True,null=True)
 
     def __str__(self) -> str:
         return f"{self.user.email} - {self.id}"
