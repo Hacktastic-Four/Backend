@@ -122,8 +122,9 @@ def profile(request):
         rating = user.rating
         profile = user.profile
         skills = user.skills
+        email = user.email
         profile_picture = user.profile_picture
-        return JsonResponse({'first_name':first_name,'last_name':last_name,'rating':rating,'profile':profile,'skills':skills,'profile_picture':profile_picture.url})
+        return JsonResponse({'first_name':first_name,'last_name':last_name,'rating':rating,'profile':profile,'skills':skills,'profile_picture':profile_picture.url,'email':email})
     if request.method == 'POST':
         data = request.data
         for field, value in data.items():

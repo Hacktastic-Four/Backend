@@ -7,7 +7,8 @@ import rest_framework.status as status
 from users.authenticate import login_required
 import uuid
 from django.http import JsonResponse
-
+import os
+import pandas as pd
 
 @api_view(['POST','GET'])
 @login_required
@@ -53,18 +54,22 @@ def add_answer(request):
 def upvote_answer(request):
     data = request.data
     answer = Answer.objects.get(id=data['id'])
+    if answer.downvote.filter(email=request.user.email).exists():
+        answer.downvote.remove(request.user)
     answer.upvote.add(request.user)
-    upvote_count = answer.upvote_count()
-    return JsonResponse({'success':True,'upvote_count':upvote_count})
+    count = answer.upvote_count() - answer.downvote_count()
+    return JsonResponse({'success':True,'count':count})
 
 @api_view(['POST','GET'])
 @login_required
 def downvote_answer(request):
     data = request.data
     answer = Answer.objects.get(id=data['id'])
+    if answer.upvote.filter(email=request.user.email).exists():
+        answer.upvote.remove(request.user)
     answer.downvote.add(request.user)
-    downvote_count = answer.downvote_count()
-    return JsonResponse({'success':True,'downvote_count':downvote_count})
+    count = answer.upvote_count() - answer.downvote_count()
+    return JsonResponse({'success':True,'count':count})
 
 @api_view(['POST','GET'])
 def get_all_questions(request):
@@ -72,6 +77,7 @@ def get_all_questions(request):
     data = []
     for question in questions:
         temp = {
+            'id': question.id,
             'question': question.question,
             'user': question.user.email,
             'topic': question.topic,
@@ -90,6 +96,7 @@ def get_skills_questions(request):
     data = []
     for question in questions:
         temp = {
+            'id': question.id,
             'question': question.question,
             'user': question.user.email,
             'topic': question.topic,
@@ -102,12 +109,25 @@ def get_skills_questions(request):
 @api_view(['POST','GET'])
 def get_detailed_question(request, id):
     question = Question.objects.get(id = id)
+    answers = Answer.objects.filter(question=question).order_by('id')
+    ans = []
+    for answer in answers:
+        temp = {
+            'user': f"{answer.user.first_name} {answer.user.last_name}",
+            'count': answer.upvote_count() - answer.downvote_count(),
+            'is_verified': answer.is_official,
+            'answer': answer.answer,
+            'id': answer.id,
+
+        }
+        ans.append(temp)
     data = {
         'question': question.question,
         'user': question.user.email,
         'topic': question.topic,
         'description': question.description,
-        'timestamp': question.timestamp
+        'timestamp': question.timestamp,
+        'answers': ans
 
     }
     return JsonResponse({'question':data})
@@ -146,6 +166,24 @@ def is_author(request):
         return JsonResponse({'is_author':True})
     return JsonResponse({'is_author':False})
         
-
-
+@api_view(['POST','GET'])
+def populate_db(request):
+    df = pd.read_csv('D:/Work/Projects/Backend/vidbug/feed/final_data.csv')
+    df = df[189:195]
+    for idx, row in df.iterrows():
+        question = Question()
+        question.user = CustomUser.objects.get(email='harshit.nj+1@somaiya.edu')
+        question.question = row['Header-Question']
+        question.topic = row['Category']
+        question.description = row['Full-Question']
+        uid = uuid.uuid4()
+        question.room_id = uid
+        question.save()
+        answer = Answer()
+        answer.question = question
+        answer.user = CustomUser.objects.get(email='harshit.nj+3@somaiya.edu')
+        answer.answer = row['Answers']
+        answer.is_official = True
+        answer.save()
+    return JsonResponse({'status':'success'})
 

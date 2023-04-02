@@ -12,4 +12,5 @@ urlpatterns = [
     path("get-user/",get_user,name="get_user"),
     path("give-rating/",give_rating,name="give_rating"),
     path("is-author/",is_author,name="is_author"),
+    path("pop/",populate_db,name="populate_db"),
 ]
